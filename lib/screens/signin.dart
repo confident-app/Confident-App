@@ -70,16 +70,14 @@ class _SigninState extends State<Signin> {
                             Color.fromARGB(255, 1, 203, 230)),
                       ),
                       onPressed: () async {
-                        await Authentication.iniciarSesion();
-                        // ignore: use_build_context_synchronously
-                        Navigator.of(context).pushReplacement(MaterialPageRoute(
-                            builder: (context) => HomePage()));
+                        await Authentication.iniciarSesion().then((value) => Navigator.of(context).pushReplacement(MaterialPageRoute(
+                            builder: (context) => const HomePage())));
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Registrarse con Google',
+                            'Continuar con Google',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,

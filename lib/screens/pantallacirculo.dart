@@ -1,40 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:confidentapp/constants/db.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-import 'package:intl/intl.dart';
-import 'package:confidentapp/funciones/planificador.dart';
-
 import 'package:confidentapp/screens/mascota.dart';
 import 'package:lottie/lottie.dart';
-
 import '../utils/authentication.dart';
 import 'calendarioregistro.dart';
+import 'package:intl/intl.dart';
 
-class circulo extends StatelessWidget {
+class Circulo extends StatelessWidget {
+  const Circulo({super.key});
+
+
   @override
   Widget build(BuildContext context) {
-    User? user = FirebaseAuth.instance.currentUser; // <- Datos del usuario
-    // void numeroCiclo() {
-    //   var fechaDeHoy = DateTime.now();
-    //   var horaDeHoy = fechaDeHoy.hour;
-    //   var instanciaDatosUsuario =
-    //       FirebaseFirestore.instance.collection('data_usuarios').doc(user!.uid);
-
-    //   var datosUsuario = instanciaDatosUsuario.get();
-    //   datosUsuario.then((value) {
-    //     var numero_ciclo = value['numero_ciclo'];
-
-    //     if (horaDeHoy == 0 &&
-    //         fechaDeHoy.minute == 0 &&
-    //         fechaDeHoy.second == 0 &&
-    //         numero_ciclo != 0) {
-    //       numero_ciclo--;
-    //       instanciaDatosUsuario.update({'numero_ciclo': numero_ciclo});
-    //     }
-    //   });
-    // }
-    
+    User? user = FirebaseAuth.instance.currentUser; // <- Datos del usuario logeado
+    DateTime fechaActual = DateTime.now();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Confident'),
@@ -79,15 +60,17 @@ class circulo extends StatelessWidget {
               backgroundColor: Color.fromARGB(95, 238, 169, 238),
               child: StreamBuilder<DocumentSnapshot>(
                   stream: FirebaseFirestore.instance
-                      .collection('data_usuarios')
+                      .collection(Constantes.datosUsuarios)
                       .doc(user!.uid)
                       .snapshots(),
                   builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                     if (snapshot.hasData) {
-                      var data = snapshot.data;
+                      var data = snapshot.data!;
+                      DateTime proxPeriodo = DateTime.fromMillisecondsSinceEpoch(data['fechaProxPeriodo'].seconds * 1000);
+                      var direnciaDiasProximoPeriodo = proxPeriodo.difference(DateTime(fechaActual.year, fechaActual.month, fechaActual.day));
                       return Text(
-                        'FALTAN ${data!['numero_ciclo']} \n Días para tu próximo periodo',
-                        style: TextStyle(
+                        'FALTAN ${direnciaDiasProximoPeriodo.inDays} \n Días para tu próximo periodo',
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w400,
                           color: Colors.white,
@@ -112,14 +95,17 @@ class circulo extends StatelessWidget {
               backgroundColor: const Color.fromARGB(95, 238, 169, 238),
               child: StreamBuilder<DocumentSnapshot>(
                   stream: FirebaseFirestore.instance
-                      .collection('data_usuarios')
+                      .collection(Constantes.datosUsuarios)
                       .doc(user.uid)
                       .snapshots(),
                   builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                     if (snapshot.hasData) {
-                      var data = snapshot.data;
+                      var data = snapshot.data!;
+                      DateTime incioFertilidad = DateTime.fromMillisecondsSinceEpoch(data['fechaIncioFertilidad'].seconds * 1000);
+                      var direnciaDias = incioFertilidad.difference(DateTime(fechaActual.year, fechaActual.month, fechaActual.day));
+                      
                       return Text(
-                        'FALTAN ${data!['faltan_dias_fertilidad_inicio']} \n Días para tu inicio del periodo de fertilidad',
+                        'FALTAN ${direnciaDias.inDays} \n Días para tu inicio del periodo de fertilidad',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w400,
@@ -144,14 +130,16 @@ class circulo extends StatelessWidget {
               backgroundColor: const Color.fromARGB(95, 238, 169, 238),
               child: StreamBuilder<DocumentSnapshot>(
                   stream: FirebaseFirestore.instance
-                      .collection('data_usuarios')
+                      .collection(Constantes.datosUsuarios)
                       .doc(user.uid)
                       .snapshots(),
                   builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                     if (snapshot.hasData) {
-                      var data = snapshot.data;
+                      var data = snapshot.data!;
+                      DateTime finFertilidad = DateTime.fromMillisecondsSinceEpoch(data['fechaFinFertilidad'].seconds * 1000);
+                      var direnciaDias = finFertilidad.difference(DateTime(fechaActual.year, fechaActual.month, fechaActual.day));
                       return Text(
-                        'FALTAN ${data!['faltan_dias_fertilidad_fin']} \n Días para tu fin del periodo de fertilidad',
+                        'FALTAN ${direnciaDias.inDays} \n Días para tu fin del periodo de fertilidad',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w400,
@@ -176,14 +164,17 @@ class circulo extends StatelessWidget {
               backgroundColor: const Color.fromARGB(95, 238, 169, 238),
               child: StreamBuilder<DocumentSnapshot>(
                   stream: FirebaseFirestore.instance
-                      .collection('data_usuarios')
+                      .collection(Constantes.datosUsuarios)
                       .doc(user.uid)
                       .snapshots(),
                   builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                     if (snapshot.hasData) {
-                      var data = snapshot.data;
+                      var data = snapshot.data!;
+                      DateTime fechaOvulacion= DateTime.fromMillisecondsSinceEpoch(data['fechaOvulacion'].seconds * 1000);
+                      var direnciaDias = fechaOvulacion.difference(DateTime(fechaActual.year, fechaActual.month, fechaActual.day));
+
                       return Text(
-                        'FALTAN ${data!['faltan_dias_ovulacion']} \n Días para la ovulaciòn',
+                        'FALTAN ${direnciaDias.inDays} \n Días para la ovulaciòn',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w400,

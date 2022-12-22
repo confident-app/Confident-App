@@ -1,18 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:confidentapp/constants/db.dart';
+import 'package:confidentapp/funciones/calculo_periodo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:confidentapp/screens/barra.dart';
 import 'package:confidentapp/screens/date_picker.dart';
-import 'package:confidentapp/screens/home.dart';
-import 'package:confidentapp/screens/signin.dart';
-import 'package:confidentapp/utils/authentication.dart';
-import 'package:calendar_calendar/calendar_calendar.dart';
 import 'package:confidentapp/widgets/fill_button.dart';
 import 'package:confidentapp/widgets/outline_button_select.dart';
 import 'package:lottie/lottie.dart';
+// ignore: depend_on_referenced_packages
 import 'package:intl/intl.dart';
-import 'calendario.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -28,7 +25,7 @@ class _HomePageState extends State<HomePage> {
   //CONTROLADORES PARA EL INGRESO DE DATOS EN REGISTRO
   /* --- Variables almacenar base de datos --- */
   User? user = FirebaseAuth.instance.currentUser; // <- Datos del usuario
-  DateTime? _fechaUltimoPeriodo;
+  
   TextEditingController controllerpregu2 = TextEditingController();
   TextEditingController controllerpregu3 = TextEditingController();
   int diasFaltan = 0;
@@ -36,50 +33,34 @@ class _HomePageState extends State<HomePage> {
 
   /* --- Funcion para registrar usuario --- */
   Future<void> registrarPeriodoBD() async {
-    calcularDias();
-    calcularPeriodo();
-    var docUser =
-        FirebaseFirestore.instance.collection('data_usuarios').doc(user?.uid);
-
-    await docUser.set({
-      'id_usuario': user?.uid,
-      'pertenece_a_la_upec': perteneceUpec,
-      'fecha_ultimo_periodo': _fechaUltimoPeriodo,
-      'numero_ciclo': diasFaltan,
-      'duracion_periodo': int.parse(controllerpregu2.text),
-      'duracion_ciclo': int.parse(controllerpregu3.text),
-      'faltan_dias_ovulacion': 0,
-      'faltan_dias_fertilidad_inicio': 0,
-      'faltan_dias_fertilidad_fin': 0,
-    });
-  }
-
-  /* --- Funcion para calcular el periodo --- */
-  void calcularPeriodo() {
-    DateTime fechaActual = DateTime.now();
+    var docUsuario = FirebaseFirestore.instance.collection(Constantes.datosUsuarios).doc(user?.uid);
 
     var inputFormat = DateFormat('dd-MM-yyyy'); // <- Formato de la fecha
-    var parseFechaActual = inputFormat
-        .parse('${fechaActual.day}-${fechaActual.month}-${fechaActual.year}');
     var fechaUltimoPeriodo = inputFormat.parse(controllerpregu1.text);
+    
+    var intProxPeriodo = CalculoPeriodo.proxPeriodo(
+      controllerpregu1.text, 
+      controllerpregu3.text,
+      controllerpregu2.text,
+    );
+    DateTime proxPeriodo = DateTime.fromMicrosecondsSinceEpoch(intProxPeriodo);
+    DateTime fechaOvulacion = DateTime.fromMicrosecondsSinceEpoch(CalculoPeriodo.fechaOvulacion(fechaUltimoPeriodo));
+    
+    var objFertilidad = CalculoPeriodo.fechasFertilidad(fechaUltimoPeriodo);
+    
+    DateTime fechaIncioFertilidad = DateTime.fromMicrosecondsSinceEpoch(int.parse(objFertilidad['fechaIncioFertilidad'].toString()));
+    DateTime fechaFinFertilidad = DateTime.fromMicrosecondsSinceEpoch(int.parse(objFertilidad['fechaFinFertilidad'].toString()));
 
-    final proxPeriodo = fechaUltimoPeriodo.add(Duration(days: numDiasPeriodo));
-    var fechaProxPeriodo = inputFormat
-        .parse('${proxPeriodo.day}-${proxPeriodo.month}-${proxPeriodo.year}');
-
-    final diferenciaDias = fechaProxPeriodo.difference(parseFechaActual);
-    setState(() {
-      diasFaltan = diferenciaDias.inDays;
-      if (diasFaltan <= 0) diasFaltan = 0;
-      _fechaUltimoPeriodo = fechaUltimoPeriodo;
-    });
-  }
-
-  void calcularDias() {
-    setState(() {
-      numdias = int.parse(controllerpregu2.text);
-      numciclo = int.parse(controllerpregu3.text);
-      numDiasPeriodo = numciclo - numdias;
+    await docUsuario.set({
+      'idUsuario': user?.uid,
+      'estudianteUpec': perteneceUpec,
+      'fechaUltimoPeriodo': fechaUltimoPeriodo,
+      'fechaProxPeriodo': proxPeriodo,
+      'duracionPeriodo': int.parse(controllerpregu2.text),
+      'duracionCiclo': int.parse(controllerpregu3.text),
+      'fechaOvulacion': fechaOvulacion,
+      'fechaIncioFertilidad': fechaIncioFertilidad,
+      'fechaFinFertilidad': fechaFinFertilidad,
     });
   }
 
@@ -187,8 +168,9 @@ class _HomePageState extends State<HomePage> {
                   text: 'GUARDAR',
                   onPressedFB: () async {
                     await registrarPeriodoBD().then((value) =>
-                        Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(builder: (context) => Barra())));
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) => Barra()))
+                    );
                   },
                 ),
                 const SizedBox(

@@ -1,16 +1,17 @@
+import 'package:confidentapp/widgets/fill_button.dart';
 import 'package:flutter/material.dart';
 
-class calendario extends StatefulWidget {
-  const calendario({Key? key, this.restorationId}) : super(key: key);
+class Calendario extends StatefulWidget {
+  const Calendario({Key? key, this.restorationId}) : super(key: key);
 
   final String? restorationId;
 
   @override
-  State<calendario> createState() => _calendarioState();
+  State<Calendario> createState() => _CalendarioState();
 }
 
 /// RestorationProperty objects can be used because of RestorationMixin.
-class _calendarioState extends State<calendario> with RestorationMixin {
+class _CalendarioState extends State<Calendario> with RestorationMixin {
   // In this example, the restoration ID for the mixin is passed in through
   // the [StatefulWidget]'s constructor.
   @override
@@ -70,14 +71,13 @@ class _calendarioState extends State<calendario> with RestorationMixin {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 100),
-      // child: RaisedButton(
-      //   color: Color.fromARGB(255, 1, 203, 230),
-      //   onPressed: () {
-      //     _restorableDatePickerRouteFuture.present();
-      //   },
-      //   child: const Text('+ Inicio de periodo '),
-      // ),
+      padding: const EdgeInsets.symmetric(horizontal: 100),
+      child: FillButton(
+        text: '+ Inicio de periodo',
+        onPressedFB: () {
+          _restorableDatePickerRouteFuture.present();
+        },
+      ),
     );
   }
 }

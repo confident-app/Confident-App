@@ -21,7 +21,7 @@ class _BarraState extends State<Barra> {
   final navigationkey = GlobalKey<CurvedNavigationBarState>();
   int index = 0;
   final screens = [
-    circulo(),
+    Circulo(),
     Calendario1(),
     informe(),
     tips(),

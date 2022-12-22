@@ -3,6 +3,7 @@ import 'dart:ffi';
 
 import 'package:calendar_calendar/calendar_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:confidentapp/widgets/fill_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -69,88 +70,7 @@ class Calendario1 extends StatefulWidget {
 class _Calendario1State extends State<Calendario1> {
   /* --- Funcion para calcular el periodo --- */
   void calcularPeriodo(_fechaSeleccionadaString) async {
-    var datosUsuario = await FirebaseFirestore.instance
-        .collection('data_usuarios')
-        .doc(user?.uid)
-        .get();
-
-    var numDiasPeriodo = datosUsuario['duracion_periodo'];
-
-    DateTime fechaActual = DateTime.now();
-    print(_fechaSeleccionadaString);
-
-    var inputFormat = DateFormat('dd-MM-yyyy'); // <- Formato de la fecha
-    var parseFechaActual = inputFormat
-        .parse('${fechaActual.day}-${fechaActual.month}-${fechaActual.year}');
-    var fechaUltimoPeriodo = inputFormat.parse(_fechaSeleccionadaString);
-
-    final proxPeriodo = fechaUltimoPeriodo.add(Duration(days: numDiasPeriodo));
-    var fechaProxPeriodo = inputFormat
-        .parse('${proxPeriodo.day}-${proxPeriodo.month}-${proxPeriodo.year}');
-
-    var diferenciaDias = fechaProxPeriodo.difference(parseFechaActual).inDays;
-
-    if (diferenciaDias <= 0) diferenciaDias = 0;
-
-    await FirebaseFirestore.instance
-        .collection('data_usuarios')
-        .doc(user?.uid)
-        .update({
-      'numero_ciclo': diferenciaDias,
-    });
-  }
-
-  void calcularFechaOvulacion(_fechaSeleccionada) async {
-    var meses31dias = [1, 3, 5, 7, 8, 10, 12];
-    var meses30dias = [4, 6, 9, 11];
-    var fechaOvulacion = _fechaSeleccionada.day + 10;
-    if (_fechaSeleccionada.month == 2) {
-      if (fechaOvulacion >= 28) {
-        fechaOvulacion = fechaOvulacion - 28;
-      }
-    } else if (meses31dias.contains(_fechaSeleccionada.month)) {
-      if (fechaOvulacion >= 31) {
-        fechaOvulacion = fechaOvulacion - 31;
-      }
-    } else if (meses30dias.contains(_fechaSeleccionada.month)) {
-      if (fechaOvulacion >= 30) {
-        fechaOvulacion = fechaOvulacion - 30;
-      }
-    }
-    await FirebaseFirestore.instance
-        .collection('data_usuarios')
-        .doc(user?.uid)
-        .update({'faltan_dias_ovulacion': fechaOvulacion});
-  }
-
-  void calcularFechaFertilidad(_fechaSeleccionada) async {
-    var meses31dias = [1, 3, 5, 7, 8, 10, 12];
-    var meses30dias = [4, 6, 9, 11];
-    var fechaFertilidadInicio = _fechaSeleccionada.day + 6;
-    var fechaFertilidadFin = fechaFertilidadInicio + 6;
-    if (_fechaSeleccionada.month == 2) {
-      if (fechaFertilidadInicio >= 28) {
-        fechaFertilidadInicio = fechaFertilidadInicio - 28;
-        fechaFertilidadFin = fechaFertilidadFin - 28;
-      }
-    } else if (meses31dias.contains(_fechaSeleccionada.month)) {
-      if (fechaFertilidadInicio >= 31) {
-        fechaFertilidadInicio = fechaFertilidadInicio - 31;
-        fechaFertilidadFin = fechaFertilidadFin - 31;
-      }
-    } else if (meses30dias.contains(_fechaSeleccionada.month)) {
-      if (fechaFertilidadInicio >= 30) {
-        fechaFertilidadInicio = fechaFertilidadInicio - 30;
-        fechaFertilidadFin = fechaFertilidadFin - 30;
-      }
-    }
-    await FirebaseFirestore.instance
-        .collection('data_usuarios')
-        .doc(user?.uid)
-        .update({
-      'faltan_dias_fertilidad_inicio': fechaFertilidadInicio,
-      'faltan_dias_fertilidad_fin': fechaFertilidadFin,
-    });
+    
   }
 
   @override
@@ -172,7 +92,7 @@ class _Calendario1State extends State<Calendario1> {
             child: Center(
           child: Column(
             children: [
-              SizedBox(
+              const SizedBox(
                 height: 50.0,
                 width: 50.0,
               ),
@@ -184,20 +104,18 @@ class _Calendario1State extends State<Calendario1> {
                 iconSize: 100.0,
               ),
               Text(nombre()),
-              SizedBox(
+              const SizedBox(
                 width: 20.0,
                 height: 20.0,
               ),
-              Container(
-                child: Text(
-                  'Selecciona la fecha de tu nuevo inicio de periodo',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      fontSize: 15),
-                ),
+              const Text(
+                'Selecciona la fecha de tu nuevo inicio de periodo',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 15),
               ),
-              SizedBox(
+              const SizedBox(
                 width: 20.0,
                 height: 20.0,
               ),
@@ -218,7 +136,7 @@ class _Calendario1State extends State<Calendario1> {
                               blurRadius: 5,
                               offset: Offset(2.0, 0.0))
                         ]),
-                    child: CircleAvatar(
+                    child: const CircleAvatar(
                       radius: 14,
                       backgroundColor: Colors.white,
                       child: Icon(
@@ -238,7 +156,7 @@ class _Calendario1State extends State<Calendario1> {
                               blurRadius: 5,
                               offset: Offset(2.0, 0.0))
                         ]),
-                    child: CircleAvatar(
+                    child: const CircleAvatar(
                       radius: 14,
                       backgroundColor: Colors.white,
                       child: Icon(
@@ -255,36 +173,32 @@ class _Calendario1State extends State<Calendario1> {
                         '${date.day}-${date.month}-${date.year}';
                   },
                   backgroundColor: Colors.white,
-                  activeColor: Color.fromARGB(255, 1, 203, 230),
-                  textStyleDays: TextStyle(
+                  activeColor: const Color.fromARGB(255, 1, 203, 230),
+                  textStyleDays: const TextStyle(
                       fontWeight: FontWeight.normal, color: Colors.black),
-                  textStyleWeekDay: TextStyle(
+                  textStyleWeekDay: const TextStyle(
                       fontWeight: FontWeight.bold, color: Colors.black),
                   titleStyle:
-                      TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                      const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                  // ignore: prefer_const_constructors
                   selectedStyle: TextStyle(
                       fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ),
               const SizedBox(
-                height: 30,
+                height: 10,
               ),
-              // Container(
-              //   child: RaisedButton(
-              //     disabledColor: Colors.amber,
-              //     child: Text(
-              //       "Guardar",
-              //       style: TextStyle(color: Colors.white),
-              //     ),
-              //     splashColor: Color.fromARGB(255, 123, 71, 213),
-              //     color: Color.fromARGB(255, 1, 203, 230),
-              //     onPressed: () {
-              //       calcularFechaOvulacion(fechaSeleccionada);
-              //       calcularFechaFertilidad(fechaSeleccionada);
-              //       calcularPeriodo(fechaSeleccionadaString);
-              //     },
-              //   ),
-              // ),
+              Container(
+                padding: const EdgeInsets.all(40),
+                child: FillButton(
+                  text: 'Guardar',
+                  onPressedFB: () {
+                    // calcularFechaOvulacion(fechaSeleccionada);
+                    // calcularFechaFertilidad(fechaSeleccionada);
+                    // calcularPeriodo(fechaSeleccionadaString);
+                  },
+                ),
+              ),
             ],
           ),
         )),
