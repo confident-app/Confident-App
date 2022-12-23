@@ -19,6 +19,7 @@ class CalculoPeriodo {
     var inputFormat = DateFormat('dd-MM-yyyy'); // <- Formato de la fecha
     var numDiasPeriodo = int.parse(diasCiclo) - int.parse(diasPerido);
     var fechaUltimoPeriodo = inputFormat.parse(fecha);
+    
     final proxPeriodo = fechaUltimoPeriodo.add(Duration(days: numDiasPeriodo));
     return proxPeriodo.microsecondsSinceEpoch;
   }

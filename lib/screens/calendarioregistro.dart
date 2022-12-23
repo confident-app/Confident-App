@@ -3,6 +3,9 @@ import 'dart:ffi';
 
 import 'package:calendar_calendar/calendar_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:confidentapp/constants/db.dart';
+import 'package:confidentapp/funciones/calculo_periodo.dart';
+import 'package:confidentapp/screens/detalles_periodo/pagtemperatura.dart';
 import 'package:confidentapp/widgets/fill_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -69,8 +72,40 @@ class Calendario1 extends StatefulWidget {
 
 class _Calendario1State extends State<Calendario1> {
   /* --- Funcion para calcular el periodo --- */
-  void calcularPeriodo(_fechaSeleccionadaString) async {
-    
+  void calcularPeriodo(fecha) async {
+    var docUsuario = FirebaseFirestore.instance.collection(Constantes.datosUsuarios).doc(user?.uid);
+    var inputFormat = DateFormat('dd-MM-yyyy'); // <- Formato de la fecha
+    var fechaNuevoPeriodo = inputFormat.parse(fecha);
+
+    await docUsuario.get().then((value) {
+      String duracionPeriodo = value['fechasPeriodo']['duracionPeriodo'].toString();
+      String duracionCiclo = value['fechasPeriodo']['duracionCiclo'].toString();
+
+      var intProxPeriodo = CalculoPeriodo.proxPeriodo(
+        fecha,
+        duracionCiclo,
+        duracionPeriodo,
+      );
+
+      DateTime proxPeriodo = DateTime.fromMicrosecondsSinceEpoch(intProxPeriodo);
+      DateTime fechaOvulacion = DateTime.fromMicrosecondsSinceEpoch(CalculoPeriodo.fechaOvulacion(fechaNuevoPeriodo));
+      
+      var objFertilidad = CalculoPeriodo.fechasFertilidad(fechaNuevoPeriodo);
+      DateTime fechaIncioFertilidad = DateTime.fromMicrosecondsSinceEpoch(int.parse(objFertilidad['fechaIncioFertilidad'].toString()));
+      DateTime fechaFinFertilidad = DateTime.fromMicrosecondsSinceEpoch(int.parse(objFertilidad['fechaFinFertilidad'].toString()));
+
+      docUsuario.update({
+        'fechasPeriodo': {
+          'duracionPeriodo': int.parse(duracionPeriodo),
+          'duracionCiclo': int.parse(duracionCiclo),
+          'fechaUltimoPeriodo': fechaNuevoPeriodo,
+          'fechaProxPeriodo': proxPeriodo,
+          'fechaOvulacion': fechaOvulacion,
+          'fechaIncioFertilidad': fechaIncioFertilidad,
+          'fechaFinFertilidad': fechaFinFertilidad,
+        }
+      });
+    });
   }
 
   @override
@@ -98,7 +133,7 @@ class _Calendario1State extends State<Calendario1> {
               ),
               IconButton(
                 onPressed: () {
-                  showAlertDialog(context, 'Bienvenida ' + nombre(), 'Hola');
+                  showAlertDialog(context, 'Bienvenida ${nombre()}', 'Hola');
                 },
                 icon: imagenUser(),
                 iconSize: 100.0,
@@ -154,7 +189,7 @@ class _Calendario1State extends State<Calendario1> {
                               color: Colors.grey[300]!,
                               spreadRadius: 1.5,
                               blurRadius: 5,
-                              offset: Offset(2.0, 0.0))
+                              offset: const Offset(2.0, 0.0))
                         ]),
                     child: const CircleAvatar(
                       radius: 14,
@@ -193,9 +228,7 @@ class _Calendario1State extends State<Calendario1> {
                 child: FillButton(
                   text: 'Guardar',
                   onPressedFB: () {
-                    // calcularFechaOvulacion(fechaSeleccionada);
-                    // calcularFechaFertilidad(fechaSeleccionada);
-                    // calcularPeriodo(fechaSeleccionadaString);
+                    calcularPeriodo(fechaSeleccionadaString);
                   },
                 ),
               ),

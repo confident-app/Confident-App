@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:confidentapp/constants/db.dart';
 import 'package:confidentapp/funciones/calculo_periodo.dart';
+import 'package:confidentapp/screens/mascota.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:confidentapp/screens/barra.dart';
@@ -54,13 +55,26 @@ class _HomePageState extends State<HomePage> {
     await docUsuario.set({
       'idUsuario': user?.uid,
       'estudianteUpec': perteneceUpec,
-      'fechaUltimoPeriodo': fechaUltimoPeriodo,
-      'fechaProxPeriodo': proxPeriodo,
-      'duracionPeriodo': int.parse(controllerpregu2.text),
-      'duracionCiclo': int.parse(controllerpregu3.text),
-      'fechaOvulacion': fechaOvulacion,
-      'fechaIncioFertilidad': fechaIncioFertilidad,
-      'fechaFinFertilidad': fechaFinFertilidad,
+      'preferenciasUI': {
+        'mascota': 'default',
+        'urlGif': 'https://assets1.lottiefiles.com/private_files/lf30_lhyi1kz7.json',
+      },
+      'detallesPeriodo': {
+        'temperatura': '',
+        'horasSuenio': '',
+        'pesoCorporal': '',
+        'animo': '',
+        'sintoma': '',
+      },
+      'fechasPeriodo': {
+        'duracionPeriodo': int.parse(controllerpregu2.text),
+        'duracionCiclo': int.parse(controllerpregu3.text),
+        'fechaUltimoPeriodo': fechaUltimoPeriodo,
+        'fechaProxPeriodo': proxPeriodo,
+        'fechaOvulacion': fechaOvulacion,
+        'fechaIncioFertilidad': fechaIncioFertilidad,
+        'fechaFinFertilidad': fechaFinFertilidad,
+      }
     });
   }
 

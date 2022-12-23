@@ -1,21 +1,45 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:confidentapp/constants/db.dart';
+import 'package:confidentapp/data/mascotas.dart';
+import 'package:confidentapp/providers/mascota_provider.dart';
+import 'package:confidentapp/screens/barra.dart';
+import 'package:confidentapp/screens/pantallacirculo.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:lottie/lottie.dart';
-import 'pantallacirculo.dart';
+import 'package:provider/provider.dart';
 
-class mascota extends StatefulWidget {
-  const mascota({Key? key}) : super(key: key);
+class MascotaPag extends StatefulWidget {
+  const MascotaPag({Key? key}) : super(key: key);
   @override
-  _mascotaState createState() => _mascotaState();
+  State<MascotaPag> createState() => _MascotaPagState();
 }
 
-class _mascotaState extends State<mascota> {
+class _MascotaPagState extends State<MascotaPag> with TickerProviderStateMixin {
+  List mascotas = Mascotas.lista;
+
+  User? user = FirebaseAuth.instance.currentUser;
+
+  Future<void> actulizarEnLaBD(String mascota, urlGif) {
+    DocumentReference docUsuario = FirebaseFirestore.instance.collection(Constantes.datosUsuarios).doc(user?.uid);
+
+    return docUsuario.get().then((value) {
+      docUsuario.update({
+        'preferenciasUI': {
+          'mascota': mascota,
+          'urlGif': urlGif,
+        },
+      });
+    });
+  }
   @override
   Widget build(BuildContext context) {
+    MascotaProvider mascota = context.watch<MascotaProvider>();
     return Scaffold(
-      appBar: new AppBar(
-        title: Text('Escoja su mascota'),
-        backgroundColor: Color.fromARGB(255, 123, 71, 213),
+      appBar: AppBar(
+        title: const Text('Escoja su mascota'),
+        backgroundColor: const Color.fromARGB(255, 123, 71, 213),
       ),
       body: Container(
           decoration: const BoxDecoration(
@@ -30,191 +54,73 @@ class _mascotaState extends State<mascota> {
                   tileMode: TileMode.repeated)),
           child: SafeArea(
             child: Container(
-                padding: EdgeInsets.all(20),
+                padding: const EdgeInsets.all(20),
                 child: Column(children: <Widget>[
-                  new Text('ESCOGE TU MASCOTA'),
-                  Divider(indent: 1),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: <Widget>[
-                        Divider(indent: 1),
-                        SizedBox(
-                          height: 100.0,
-                          width: 100.0,
-                          child: Container(
-                            child: CircleAvatar(
-                              radius: 2.0,
-                              backgroundColor: Colors.white,
-                              child: InkWell(
-                                // onTap: () {
-                                //   Navigator.push(
-                                //     context,
-                                //     MaterialPageRoute(
-                                //       builder: (context) {
-                                //         return pantallacirculo(_mascotaState());
-                                //       },
-                                //     ),
-                                //   );
-                                // },
-                                child: new SizedBox(
-                                  height: 80,
-                                  width: 80,
-                                  child: Lottie.network(
-                                      'https://assets1.lottiefiles.com/packages/lf20_4fewfamh.json',
-                                      height: 140),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: <Widget>[
-                        Divider(indent: 1),
-                        SizedBox(
-                          height: 100,
-                          width: 100,
-                          child: Container(
-                            child: CircleAvatar(
-                                radius: 10.0,
+                  const Text('ESCOGE TU MASCOTA'),
+                  const Divider(indent: 1),
+                  ListView.builder(
+                    itemCount: mascotas.length,
+                    shrinkWrap: true,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 20),
+                            height: 100.0,
+                            width: 100.0,
+                            child: Container(
+                              child: CircleAvatar(
+                                radius: 2.0,
                                 backgroundColor: Colors.white,
                                 child: InkWell(
-                                  // onTap: () {
-                                  //   Navigator.of(context).push(
-                                  //     MaterialPageRoute(
-                                  //       builder: (context) => PesoPag(),
-                                  //     ),
-                                  //   );
-                                  // },
-                                  child: ClipOval(
-                                    child: new SizedBox(
-                                      height: 65,
-                                      width: 65,
-                                      child: Lottie.network(
-                                          'https://assets1.lottiefiles.com/private_files/lf30_lhyi1kz7.json'),
+                                  onTap: () {
+                                    showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text(
+                                        '¿Quieres elegir esta mascota?',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      actionsAlignment: MainAxisAlignment.center,
+                                      actions: <Widget>[
+                                        ElevatedButton(
+                                          child: const Text('Si'),
+                                          onPressed: () async {
+                                            await mascota.setMascota(mascotas[index]['urlGif']);
+                                            await actulizarEnLaBD(mascotas[index]['mascota'].toString(), mascotas[index]['urlGif']).then((value) {
+                                              Navigator.pop(context);
+                                            });
+                                          },
+                                        ),
+                                        OutlinedButton(
+                                          child: const Text('No'),
+                                          onPressed: () => Navigator.of(context).pop(),
+                                        )
+                                      ],
+                                    ));
+                                  },
+                                  child: SizedBox(
+                                    height: 80,
+                                    width: 80,
+                                    child: Lottie.network(
+                                      mascotas[index]['urlGif'].toString(),
+                                      height: 140
                                     ),
                                   ),
-                                )),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: <Widget>[
-                        Divider(indent: 1),
-                        SizedBox(
-                          height: 100.0,
-                          width: 100.0,
-                          child: Container(
-                            child: CircleAvatar(
-                              radius: 10.0,
-                              backgroundColor: Colors.white,
-                              child: InkWell(
-                                // onTap: () {
-                                //   Navigator.of(context).push(
-                                //     MaterialPageRoute(
-                                //       builder: (context) => TemperaturaPag(),
-                                //     ),
-                                //   );
-                                // },
-                                child: new SizedBox(
-                                  height: 80,
-                                  width: 80,
-                                  child: Lottie.network(
-                                      'https://assets1.lottiefiles.com/packages/lf20_lc46h4dr.json'),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: <Widget>[
-                        Divider(indent: 1),
-                        SizedBox(
-                          height: 100.0,
-                          width: 100.0,
-                          child: Container(
-                            child: CircleAvatar(
-                              radius: 10.0,
-                              backgroundColor: Colors.white,
-                              child: InkWell(
-                                // onTap: () {
-                                //   Navigator.of(context).push(
-                                //     MaterialPageRoute(
-                                //       builder: (context) => TemperaturaPag(),
-                                //     ),
-                                //   );
-                                // },
-                                child: new SizedBox(
-                                  height: 80,
-                                  width: 80,
-                                  child: Lottie.network(
-                                      'https://assets1.lottiefiles.com/packages/lf20_OT15QW.json'),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: <Widget>[
-                        Divider(indent: 1),
-                        SizedBox(
-                          height: 100.0,
-                          width: 100.0,
-                          child: Container(
-                            child: CircleAvatar(
-                              radius: 10.0,
-                              backgroundColor: Colors.white,
-                              child: InkWell(
-                                // onTap: () {
-                                //   Navigator.of(context).push(
-                                //     MaterialPageRoute(
-                                //       builder: (context) => TemperaturaPag(),
-                                //     ),
-                                //   );
-                                // },
-                                child: new SizedBox(
-                                  height: 80,
-                                  width: 80,
-                                  child: Lottie.network(
-                                      'https://assets1.lottiefiles.com/packages/lf20_s4tubmwg.json'),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      );
+                
+                    }
                   ),
                 ])),
           )),

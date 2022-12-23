@@ -6,16 +6,18 @@ import 'package:confidentapp/screens/mascota.dart';
 import 'package:lottie/lottie.dart';
 import '../utils/authentication.dart';
 import 'calendarioregistro.dart';
+// ignore: depend_on_referenced_packages
 import 'package:intl/intl.dart';
 
 class Circulo extends StatelessWidget {
   const Circulo({super.key});
 
-
   @override
   Widget build(BuildContext context) {
     User? user = FirebaseAuth.instance.currentUser; // <- Datos del usuario logeado
     DateTime fechaActual = DateTime.now();
+
+    // MascotaProvider mascota = context.watch<MascotaProvider>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Confident'),
@@ -34,22 +36,52 @@ class Circulo extends StatelessWidget {
                 tileMode: TileMode.repeated)),
         child: ListView(children: [
           //---contenedor fecha actual
-          Container(
-            margin: EdgeInsets.fromLTRB(250, 20, 0, 0),
-            child: Text(
-              DateFormat.yMMMEd().format(DateTime.now()),
-              style: TextStyle(
-                  // Styling text
-                  fontWeight: FontWeight.normal,
-                  fontSize: 15),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance.collection(Constantes.datosUsuarios).doc(user?.uid).snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    var datosUsuario = snapshot.data!;
+                    var mascotaUI = datosUsuario['preferenciasUI']['urlGif'];
+                    return Container(
+                      padding: const EdgeInsets.all(10),
+                      margin: const EdgeInsets.fromLTRB(0, 0, 20, 0),
+                      child: Lottie.network(
+                        mascotaUI,
+                        height: 100),
+                    );
+                  }
+                  return const Center(child: CircularProgressIndicator());
+                },
+              ),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  color: Colors.black12,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(14),
+                    bottomLeft: Radius.circular(2),
+                  )
+                ),
+                // margin: const EdgeInsets.fromLTRB(250, 20, 0, 0),
+                child: Text(
+                  'Hoy, ${DateFormat.yMMMMd().format(DateTime.now())}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                      fontWeight: FontWeight.normal,
+                      fontSize: 16),
+                ),
+              ),
+            ],
           ),
-          Container(
-            margin: EdgeInsets.fromLTRB(0, 0, 250, 20),
-            child: Lottie.network(
-                'https://assets9.lottiefiles.com/private_files/lf30_ohapmypv.json',
-                height: 100),
-          ),
+          // Container(
+          //   margin: const EdgeInsets.fromLTRB(0, 0, 250, 20),
+          //   child: Lottie.network(
+          //     mascota.mascota,
+          //     height: 100),
+          // ),
           const SizedBox(
             height: 20,
           ),
@@ -66,7 +98,7 @@ class Circulo extends StatelessWidget {
                   builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                     if (snapshot.hasData) {
                       var data = snapshot.data!;
-                      DateTime proxPeriodo = DateTime.fromMillisecondsSinceEpoch(data['fechaProxPeriodo'].seconds * 1000);
+                      DateTime proxPeriodo = DateTime.fromMillisecondsSinceEpoch(data['fechasPeriodo']['fechaProxPeriodo'].seconds * 1000);
                       var direnciaDiasProximoPeriodo = proxPeriodo.difference(DateTime(fechaActual.year, fechaActual.month, fechaActual.day));
                       return Text(
                         'FALTAN ${direnciaDiasProximoPeriodo.inDays} \n Días para tu próximo periodo',
@@ -101,7 +133,7 @@ class Circulo extends StatelessWidget {
                   builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                     if (snapshot.hasData) {
                       var data = snapshot.data!;
-                      DateTime incioFertilidad = DateTime.fromMillisecondsSinceEpoch(data['fechaIncioFertilidad'].seconds * 1000);
+                      DateTime incioFertilidad = DateTime.fromMillisecondsSinceEpoch(data['fechasPeriodo']['fechaIncioFertilidad'].seconds * 1000);
                       var direnciaDias = incioFertilidad.difference(DateTime(fechaActual.year, fechaActual.month, fechaActual.day));
                       
                       return Text(
@@ -136,7 +168,7 @@ class Circulo extends StatelessWidget {
                   builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                     if (snapshot.hasData) {
                       var data = snapshot.data!;
-                      DateTime finFertilidad = DateTime.fromMillisecondsSinceEpoch(data['fechaFinFertilidad'].seconds * 1000);
+                      DateTime finFertilidad = DateTime.fromMillisecondsSinceEpoch(data['fechasPeriodo']['fechaFinFertilidad'].seconds * 1000);
                       var direnciaDias = finFertilidad.difference(DateTime(fechaActual.year, fechaActual.month, fechaActual.day));
                       return Text(
                         'FALTAN ${direnciaDias.inDays} \n Días para tu fin del periodo de fertilidad',
@@ -170,7 +202,7 @@ class Circulo extends StatelessWidget {
                   builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                     if (snapshot.hasData) {
                       var data = snapshot.data!;
-                      DateTime fechaOvulacion= DateTime.fromMillisecondsSinceEpoch(data['fechaOvulacion'].seconds * 1000);
+                      DateTime fechaOvulacion= DateTime.fromMillisecondsSinceEpoch(data['fechasPeriodo']['fechaOvulacion'].seconds * 1000);
                       var direnciaDias = fechaOvulacion.difference(DateTime(fechaActual.year, fechaActual.month, fechaActual.day));
 
                       return Text(
@@ -241,7 +273,7 @@ class Circulo extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => mascota(),
+                    builder: (context) => MascotaPag(),
                   ),
                 );
               },
